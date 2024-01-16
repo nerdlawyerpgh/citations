@@ -1,5 +1,3 @@
-regex
-lxml
-courts_db
-pyahocorasick
-reporters_db
+re
+dataclasses
+typing
