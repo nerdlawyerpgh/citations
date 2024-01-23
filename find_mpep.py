@@ -7,7 +7,10 @@ MPEP_REGEX = r'(\bMPEP\s+)(?:§\s+)?(?P<chapter>\d+)(?:\.\s*(?P<section>[\d]+)(?
 mpep_pattern = re.compile(MPEP_REGEX)
 
 # Statute capture.  Examples: 35 U.S.C. 112 or 37 cfr 3.73(c)
-STATUTE_REGEX = r'(?P<title>\d+)\s+(?P<code>U\.S\.C\.|USC|C.F.R.|CFR|(stat(?:\.)?))\s+(?P<section>[\d]+(?:\([\da-zA-Z]+\))?)?(?:\s*\.\s*(?P<subsection>[\da-zA-Z]+(?:\([\da-zA-Z]+\))?)?)?'
+#STATUTE_REGEX = r'(?P<title>\d+)\s+(?P<code>U\.S\.C\.|USC|C.F.R.|CFR|(stat(?:\.)?))\s+(?P<section>[\d]+(?:\([\d{1,2}\s?[a-zA-Z]+\))?)?(?:\s*\.\s*(?P<subsection>[\da-zA-Z]+(?:\([\da-zA-Z]+\))?)?)?'
+
+STATUTE_REGEX = r'(?P<title>\d+)\s+(?P<code>u\.?s\.?c\.?|c\.?f\.?r\.?|(stat(?:\.)?))\s+(?P<section>[\d]+([\s\(\.\[]))(?:\s*\.\s*(?P<subsection>[\da-zA-Z]{1,2}(?:\([\da-zA-Z]+\))?)?)?'
+
 statute_pattern = re.compile(STATUTE_REGEX, re.IGNORECASE)
 
 @dataclass(eq=True, unsafe_hash=True)
