@@ -3,13 +3,15 @@ from dataclasses import dataclass, field
 from typing import Optional, Sequence, List, Any
 
 # Example MPEP citation: MPEP 2145 or MPEP § 701.32(a)(1)
-MPEP_REGEX = r'(\bMPEP\s+)(?:§\s+)?(?P<chapter>\d+)(?:\.\s*(?P<section>[\d]+)(?P<subsection>(?:\([\da-zA-Z]+\)(?:\(\d+\))?|(?:\.([\da-zA-Z]+)(?:\.\([\da-zA-Z]+)\)?)?)?)?)?'
-mpep_pattern = re.compile(MPEP_REGEX)
+#MPEP_REGEX = r'(\bMPEP\s+)(?:§\s+)?(?P<chapter>\d+)(?:\.\s*(?P<section>[\d]+)(?P<subsection>(?:\([\da-zA-Z]+\)(?:\(\d+\))?|(?:\.([\da-zA-Z]+)(?:\.\([\da-zA-Z]+)\)?)?)?)?)?'
+
+MPEP_REGEX = r'(\bMPEP\s+)(?:§\s+)?(?P<chapter>\d+)(?:\.\s*(?P<section>[\d]+)(?:\.\s*(?P<subsection>[\dA-Za-z]+(?:\([\dA-Za-z]+\))?)?)?)?'
+
+mpep_pattern = re.compile(MPEP_REGEX, re.IGNORECASE)
 
 # Statute capture.  Examples: 35 U.S.C. 112 or 37 cfr 3.73(c)
-#STATUTE_REGEX = r'(?P<title>\d+)\s+(?P<code>U\.S\.C\.|USC|C.F.R.|CFR|(stat(?:\.)?))\s+(?P<section>[\d]+(?:\([\d{1,2}\s?[a-zA-Z]+\))?)?(?:\s*\.\s*(?P<subsection>[\da-zA-Z]+(?:\([\da-zA-Z]+\))?)?)?'
+STATUTE_REGEX = r'\b(?P<preface>(?:pre-AIA|AIA)?)\s+(?P<title>\d+)\s*(?P<code>[Uu]\.?[Ss]\.?[Cc]\.?|[cC]\.?[fF]\.?[rR]\.?)\s+(?P<section>\d+(?:\s*\(\.\s*\d+\))?)?(?P<subsection>(?:\([\da-zA-Z]+\)|\.\d+)+)?'
 
-STATUTE_REGEX = r'(?P<title>\d+)\s+(?P<code>u\.?s\.?c\.?|c\.?f\.?r\.?|(stat(?:\.)?))\s+(?P<section>[\d]+([\s\(\.\[]))(?:\s*\.\s*(?P<subsection>[\da-zA-Z]{1,2}(?:\([\da-zA-Z]+\))?)?)?'
 
 statute_pattern = re.compile(STATUTE_REGEX, re.IGNORECASE)
 
@@ -49,8 +51,8 @@ class StatuteCitation:
         m = self.metadata
         g = self.groups
         if m:
-            parts = [f'{m["title"]} {m["code"]} {m["section"]}{m["subsection"] or ""}']
-            return ' '.join(parts), g
+            parts = [f'{m["preface"] or ""} {m["title"]} {m["code"]} {m["section"]}{m["subsection"] or ""}']
+            return ''.join(parts), g
         return '', g
     
     def span(self):
@@ -66,6 +68,7 @@ def extract_citations(text):
 
     for match in mpep_matches:
         groups = match.groupdict()
+        print(match.group())
         citation = MPEPCitation(
             metadata=groups,
             groups=groups,
@@ -77,11 +80,12 @@ def extract_citations(text):
     
     for match in statute_matches:
         groups = match.groupdict()
+        print(match.group())
         citation = StatuteCitation(
             metadata=groups,
             groups=groups,
             index=match.start(),
-            span_start=match.start(),
+            span_start=match.start('preface') if groups['preface'] else match.start('title'),
             span_end=match.end('subsection') if groups['subsection'] else match.end('section')
         )
         citations.append(citation)
